@@ -31,13 +31,21 @@ app.post('/generate-presigned-url', async (req, res) => {
     const command = new GetObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
       Key: key,
-      ResponseContentDisposition: `attachment; filename="${key}"`
+      ResponseContentDisposition: `attachment; filename="${key}"`,
+      ResponseCacheControl: 'no-cache, no-store, must-revalidate',
+      ResponseExpires: '0'
     });
 
     // Gera URL pré-assinada válida por 1 hora 3600
     const url = await getSignedUrl(s3Client, command, { expiresIn: 10 }); 
+    
+    // Adiciona timestamp para evitar cache
+    const urlWithTimestamp = `${url}&timestamp=${Date.now()}`;
 
-    res.json({ url });
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.set('Expires', '0');
+    res.set('Pragma', 'no-cache');
+    res.json({ url: urlWithTimestamp });
   } catch (error) {
     console.error('Erro ao gerar URL pré-assinada:', error);
     res.status(500).json({ error: 'Erro ao gerar URL pré-assinada' });
@@ -51,5 +59,5 @@ app.get('/', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Servidor rodando na porta ${PORT} - v2`);
+  console.log(`Servidor rodando na porta ${PORT} - v3`);
 })
