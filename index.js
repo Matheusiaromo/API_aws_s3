@@ -35,7 +35,7 @@ app.post('/generate-presigned-url', async (req, res) => {
     });
 
     // Garante que expiresIn seja um número
-    const expiresIn = Number(10);
+    const expiresIn = Number(3600);
     console.log('Gerando URL pré-assinada com expiração de', expiresIn, 'segundos');
     console.log('Tipo do expiresIn:', typeof expiresIn);
     
