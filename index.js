@@ -34,8 +34,8 @@ app.post('/generate-presigned-url', async (req, res) => {
       ResponseContentDisposition: `attachment; filename="${key}"`
     });
 
-    // Gera URL pré-assinada válida por 1 hora
-    const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+    // Gera URL pré-assinada válida por 1 hora 3600
+    const url = await getSignedUrl(s3Client, command, { expiresIn: 10 }); 
 
     res.json({ url });
   } catch (error) {
