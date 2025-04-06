@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de URL Pré-assinada AWS S3</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+            word-break: break-all;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        #result a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        #result a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gerador de URL Pré-assinada AWS S3</h1>
+        <div class="form-group">
+            <label for="key">Chave do arquivo:</label>
+            <input type="text" id="key" placeholder="Digite a chave do arquivo no S3">
+        </div>
+        <button onclick="generateUrl()">Gerar URL</button>
+        <div id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        async function generateUrl() {
+            const key = document.getElementById('key').value;
+            const resultDiv = document.getElementById('result');
+
+            if (!key) {
+                showError('Por favor, insira a chave do arquivo.');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/generate-presigned-url', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ key })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const downloadButton = `
+                        <div style="margin-top: 10px;">
+                            <a href="${data.url}" download="${key}" class="download-button" style="
+                                display: inline-block;
+                                background-color: #28a745;
+                                color: white;
+                                padding: 10px 15px;
+                                border-radius: 4px;
+                                text-decoration: none;
+                                width: 100%;
+                                text-align: center;
+                                box-sizing: border-box;
+                            " onclick="startDownload('${data.url}', '${key}'); return false;">Baixar Arquivo</a>
+                        </div>
+                    `;
+                    showSuccess(`URL gerada com sucesso! Clique no botão abaixo para baixar:${downloadButton}`);
+                } else {
+                    showError(data.error || 'Erro ao gerar URL');
+                }
+            } catch (error) {
+                showError('Erro ao conectar com o servidor. Verifique se o servidor está rodando.');
+            }
+        }
+
+        function startDownload(url, filename) {
+            // Cria um elemento de link temporário
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            
+            // Adiciona o link ao documento
+            document.body.appendChild(link);
+            
+            // Simula o clique no link
+            link.click();
+            
+            // Remove o link do documento
+            setTimeout(() => {
+                document.body.removeChild(link);
+            }, 100);
+        }
+
+        function showSuccess(message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'success';
+            resultDiv.innerHTML = message;
+            resultDiv.style.display = 'block';
+        }
+
+        function showError(message) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.className = 'error';
+            resultDiv.innerHTML = message;
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
