@@ -34,7 +34,13 @@ app.post('/generate-presigned-url', async (req, res) => {
       ResponseContentDisposition: `attachment; filename="${key}"`
     });
 
-    const url = await getSignedUrl(s3Client, command, { expiresIn: 10 }); 
+    // Garante que expiresIn seja um número
+    const expiresIn = Number(10);
+    console.log('Gerando URL pré-assinada com expiração de', expiresIn, 'segundos');
+    console.log('Tipo do expiresIn:', typeof expiresIn);
+    
+    const url = await getSignedUrl(s3Client, command, { expiresIn }); 
+    console.log('URL gerada com sucesso');
     
     res.json({ url });
   } catch (error) {
